@@ -21,7 +21,7 @@ func main() {
 
 	port := os.Getenv("PORT")
 	if len(port) == 0 {
-		port = "8080"
+		port = "3000"
 	}
 
 	fmt.Println("Listening on port: " + port)

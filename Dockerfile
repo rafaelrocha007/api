@@ -4,5 +4,5 @@ COPY . .
 RUN CGO_ENABLED=0 go build -ldflags "-s -w" -o main
 
 FROM scratch
-COPY --from=base /usr/src/main /main
-CMD ["/main"]
+COPY --from=base /usr/src/main /go-http-microservice
+CMD ["/go-http-microservice"]
