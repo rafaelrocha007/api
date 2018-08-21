@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"strings"
+	"time"
 )
 
 var endpoints = map[string]string{
@@ -45,6 +46,8 @@ func handler(w http.ResponseWriter, r *http.Request) {
 }
 
 func request(endpoint, source string, tube chan []byte) {
+	start := time.Now()
+
 	request, err := http.Get(endpoint)
 	if err != nil {
 		fmt.Printf("Could not get from %s - %s \n", source, err.Error())
@@ -56,6 +59,8 @@ func request(endpoint, source string, tube chan []byte) {
 		fmt.Printf("Could not get payload from %s - %s", source, err.Error())
 	}
 
-	fmt.Printf("endpoint %s won \n", source)
-	tube <- response
+	if len(response) != 0 && request.StatusCode == http.StatusOK {
+		fmt.Printf("Endpoint %s won - time %s \n", source, time.Since(start))
+		tube <- response
+	}
 }
