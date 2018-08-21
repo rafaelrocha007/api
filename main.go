@@ -10,8 +10,8 @@ import (
 )
 
 var endpoints = map[string]string{
-	"viacep":           "https://viacep.com.br/ws/%s/json/",
-	"postmon":          "https://api.postmon.com.br/v1/cep/%s",
+	"viacep":           "http://viacep.com.br/ws/%s/json/",
+	"postmon":          "http://api.postmon.com.br/v1/cep/%s",
 	"republicavirtual": "http://republicavirtual.com.br/web_cep.php?cep=%s&formato=json",
 }
 
