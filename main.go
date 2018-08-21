@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"os"
 	"strings"
@@ -25,7 +24,7 @@ func main() {
 	}
 
 	fmt.Println("Listening on port: " + port)
-	log.Fatal(http.ListenAndServe(":"+port, nil))
+	http.ListenAndServe(":"+port, nil)
 }
 
 func handler(w http.ResponseWriter, r *http.Request) {
