@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -8,6 +9,13 @@ import (
 	"strings"
 	"time"
 )
+
+type cep struct {
+	Cidade     string `json:"cidade"`
+	Bairro     string `json:"bairro"`
+	Logradouro string `json:"logradouro"`
+	UF         string `json:"uf"`
+}
 
 var endpoints = map[string]string{
 	"viacep":           "http://viacep.com.br/ws/%s/json/",
@@ -41,7 +49,8 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	fmt.Fprintf(w, "%v", string(<-tube))
+	response := parseResponse(<-tube)
+	json.NewEncoder(w).Encode(response)
 }
 
 func request(endpoint, source string, tube chan []byte) {
@@ -59,7 +68,29 @@ func request(endpoint, source string, tube chan []byte) {
 	}
 
 	if len(response) != 0 && request.StatusCode == http.StatusOK {
-		fmt.Printf("Endpoint %s won - time %s \n", source, time.Since(start))
+		fmt.Printf("Endpoint %s took: %s \n", source, time.Since(start))
 		tube <- response
 	}
+}
+
+func parseResponse(content []byte) (payload cep) {
+	response := make(map[string]interface{})
+	_ = json.Unmarshal(content, &response)
+
+	if _, ok := response["localidade"]; ok {
+		payload.Cidade = response["localidade"].(string)
+	} else {
+		payload.Cidade = response["cidade"].(string)
+	}
+
+	if _, ok := response["estado"]; ok {
+		payload.UF = response["estado"].(string)
+	} else {
+		payload.UF = response["uf"].(string)
+	}
+
+	payload.Bairro = response["bairro"].(string)
+	payload.Logradouro = response["logradouro"].(string)
+
+	return
 }
