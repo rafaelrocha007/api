@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strings"
 )
 
 var endpoints = map[string]string{
@@ -32,9 +33,10 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	tube := make(chan []byte, 3)
+	tube := make(chan []byte, 1)
+	cep := strings.Split(r.URL.Path[1:], "/")[1]
 	for source, url := range endpoints {
-		endpoint := fmt.Sprintf(url, r.URL.Path[1:])
+		endpoint := fmt.Sprintf(url, cep)
 		go request(endpoint, source, tube)
 	}
 
