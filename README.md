@@ -7,9 +7,10 @@ para realizar suas consultas.
 Fastcep utiliza concorrência diponibilizada em [`Golang`](http://golang.org/) para realizar
 diversas requisições simultaneas em diversos serviços de `CEP` sendo capaz de selecionar apenas a resposta mais rapida dentro os serviços utilizados.
 
-### Porque?
+### Por que?
 Existem diversos serviços de consulta de `CEP` espalhados e cada um possui um corpo de resposta diferente,
-Fastcep consegue consultar estes serviços e retornar uma resposta uniforme independente de qual foi a fonte de consulta.
+Fastcep consegue consultar estes serviços e retornar uma resposta uniforme independente de qual foi a fonte de consulta, assim você não precisa
+se preocupar com qual foi o serviço que respondeu e sim com os dados em sí.
 
 ### Exemplo
 
