@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -41,11 +42,15 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	timeout := time.Second * 300
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
+
 	tube := make(chan []byte, 1)
 	cep := strings.Split(r.URL.Path[1:], "/")[1]
 	for source, url := range endpoints {
 		endpoint := fmt.Sprintf(url, cep)
-		go request(endpoint, source, tube)
+		go request(ctx, endpoint, source, tube)
 	}
 
 	w.Header().Set("Content-Type", "application/json")
@@ -53,21 +58,31 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(response)
 }
 
-func request(endpoint, source string, tube chan []byte) {
+func request(ctx context.Context, endpoint, source string, tube chan []byte) {
 	start := time.Now()
 
-	request, err := http.Get(endpoint)
+	request, err := http.NewRequest("GET", endpoint, nil)
 	if err != nil {
 		fmt.Printf("Could not get from %s - %s \n", source, err.Error())
+		return
 	}
-	defer request.Body.Close()
 
-	response, err := ioutil.ReadAll(request.Body)
+	request = request.WithContext(ctx)
+
+	content, err := http.DefaultClient.Do(request)
 	if err != nil {
-		fmt.Printf("Could not get payload from %s - %s", source, err.Error())
+		fmt.Printf("Fail to request data from %s \n", source)
+		return
+	}
+	defer content.Body.Close()
+
+	response, err := ioutil.ReadAll(content.Body)
+	if err != nil {
+		fmt.Printf("Could not get payload from %s - %s \n", source, err.Error())
+		return
 	}
 
-	if len(response) != 0 && request.StatusCode == http.StatusOK {
+	if len(response) != 0 && content.StatusCode == http.StatusOK {
 		fmt.Printf("Endpoint %s took: %s \n", source, time.Since(start))
 		tube <- response
 	}
