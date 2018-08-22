@@ -88,6 +88,9 @@ func request(ctx context.Context, endpoint, source string, tube chan []byte) {
 	}
 }
 
+// parseResponse formata a resposta para uma saida padrão baseada na struct de cep,
+// alguns serviços de cep tem respostas diferentes que usa a palavra
+// "localidade" para definir a cidade e estado para definir a UF.
 func parseResponse(content []byte) (payload cep) {
 	response := make(map[string]interface{})
 	_ = json.Unmarshal(content, &response)
