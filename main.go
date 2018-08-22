@@ -18,6 +18,10 @@ type cep struct {
 	UF         string `json:"uf"`
 }
 
+func (c cep) exist() bool {
+	return len(c.UF) != 0
+}
+
 var endpoints = map[string]string{
 	"viacep":           "http://viacep.com.br/ws/%s/json/",
 	"postmon":          "http://api.postmon.com.br/v1/cep/%s",
@@ -47,15 +51,20 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	defer cancel()
 
 	tube := make(chan []byte, 1)
-	cep := strings.Split(r.URL.Path[1:], "/")[1]
+	requestedCep := strings.Split(r.URL.Path[1:], "/")[1]
 	for source, url := range endpoints {
-		endpoint := fmt.Sprintf(url, cep)
+		endpoint := fmt.Sprintf(url, requestedCep)
 		go request(ctx, endpoint, source, tube)
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	response := parseResponse(<-tube)
-	json.NewEncoder(w).Encode(response)
+	cepInformation := parseResponse(<-tube)
+	if cepInformation.exist() {
+		json.NewEncoder(w).Encode(cepInformation)
+		return
+	}
+
+	http.Error(w, "", http.StatusNoContent)
 }
 
 func request(ctx context.Context, endpoint, source string, tube chan []byte) {
