@@ -28,7 +28,9 @@ curl http://republicavirtual.com.br/web_cep.php?cep=07400885&formato=json
 ```
 
 Fastcep é capaz de realizar as requisições simultaneas em todos os serviços e devolver
-a resposta mais rapida, desta maneira você não precisa ficar refem de apenas um serviço e consequentemente economizara tempo nas suas requisições. :tada:
+a resposta mais rapida, desta maneira você não precisa ficar refem de apenas um serviço e consequentemente economizara tempo nas suas requisições,
+se algum dos serviços ficar indisponivel ele sera automaticamente descartado até que normalize e outros serviços continuaram respondendo normalmente assim você não corre
+o risco de ficar sem os dados de `CEP` em nenhum momento. :tada:
 
 #### Requisição com Fastcep: (link provisório)
 
