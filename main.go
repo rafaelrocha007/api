@@ -69,22 +69,22 @@ func request(ctx context.Context, endpoint, source string, tube chan []byte) {
 
 	request = request.WithContext(ctx)
 
-	content, err := http.DefaultClient.Do(request)
+	response, err := http.DefaultClient.Do(request)
 	if err != nil {
 		fmt.Printf("Fail to request data from %s \n", source)
 		return
 	}
-	defer content.Body.Close()
+	defer response.Body.Close()
 
-	response, err := ioutil.ReadAll(content.Body)
+	requestContent, err := ioutil.ReadAll(response.Body)
 	if err != nil {
 		fmt.Printf("Could not get payload from %s - %s \n", source, err.Error())
 		return
 	}
 
-	if len(response) != 0 && content.StatusCode == http.StatusOK {
+	if len(requestContent) != 0 && response.StatusCode == http.StatusOK {
 		fmt.Printf("Endpoint %s took: %s \n", source, time.Since(start))
-		tube <- response
+		tube <- requestContent
 	}
 }
 
