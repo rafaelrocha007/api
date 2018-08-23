@@ -3,10 +3,12 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
 	"os"
+	"regexp"
 	"strings"
 	"time"
 )
@@ -46,12 +48,17 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	requestedCep := strings.Split(r.URL.Path[1:], "/")[1]
+	if err := isValidCEP(requestedCep); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
 	timeout := time.Second * 300
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 
 	tube := make(chan []byte, 1)
-	requestedCep := strings.Split(r.URL.Path[1:], "/")[1]
 	for source, url := range endpoints {
 		endpoint := fmt.Sprintf(url, requestedCep)
 		go request(ctx, endpoint, source, tube)
@@ -120,4 +127,15 @@ func parseResponse(content []byte) (payload cep) {
 	payload.Logradouro = response["logradouro"].(string)
 
 	return
+}
+
+func isValidCEP(cep string) error {
+	re := regexp.MustCompile(`[^0-9]`)
+	formatedCEP := re.ReplaceAllString(cep, `$1`)
+
+	if len(formatedCEP) < 8 {
+		return errors.New("Cep deve conter apenas números e no minimo 8 digitos")
+	}
+
+	return nil
 }
