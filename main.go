@@ -151,7 +151,7 @@ func isValidCEP(cep string) error {
 }
 
 func isValidResponse(requestContent map[string]interface{}) bool {
-	if _, ok := requestContent["error"]; ok {
+	if _, ok := requestContent["erro"]; ok {
 		return false
 	}
 
