@@ -111,6 +111,10 @@ func parseResponse(content []byte) (payload cep) {
 	response := make(map[string]interface{})
 	_ = json.Unmarshal(content, &response)
 
+	if ok := isValidResponse(response); !ok {
+		return
+	}
+
 	if _, ok := response["localidade"]; ok {
 		payload.Cidade = response["localidade"].(string)
 	} else {
@@ -138,4 +142,16 @@ func isValidCEP(cep string) error {
 	}
 
 	return nil
+}
+
+func isValidResponse(requestContent map[string]interface{}) bool {
+	if _, ok := requestContent["error"]; ok {
+		return false
+	}
+
+	if _, ok := requestContent["fail"]; ok {
+		return false
+	}
+
+	return true
 }
