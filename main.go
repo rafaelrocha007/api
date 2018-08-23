@@ -65,7 +65,8 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	for {
+
+	for index := 0; index < 3; index++ {
 		cepInformation, err := parseResponse(<-tube)
 		if err != nil {
 			continue
@@ -73,11 +74,11 @@ func handler(w http.ResponseWriter, r *http.Request) {
 
 		if cepInformation.exist() {
 			json.NewEncoder(w).Encode(cepInformation)
-		} else {
-			http.Error(w, "", http.StatusNoContent)
+			return
 		}
-		break
 	}
+
+	http.Error(w, "", http.StatusNoContent)
 }
 
 func request(ctx context.Context, endpoint, source string, tube chan []byte) {
