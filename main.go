@@ -65,13 +65,19 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	cepInformation := parseResponse(<-tube)
-	if cepInformation.exist() {
-		json.NewEncoder(w).Encode(cepInformation)
-		return
-	}
+	for {
+		cepInformation, err := parseResponse(<-tube)
+		if err != nil {
+			continue
+		}
 
-	http.Error(w, "", http.StatusNoContent)
+		if cepInformation.exist() {
+			json.NewEncoder(w).Encode(cepInformation)
+		} else {
+			http.Error(w, "", http.StatusNoContent)
+		}
+		break
+	}
 }
 
 func request(ctx context.Context, endpoint, source string, tube chan []byte) {
@@ -107,12 +113,12 @@ func request(ctx context.Context, endpoint, source string, tube chan []byte) {
 // parseResponse formata a resposta para uma saida padrão baseada na struct de cep,
 // alguns serviços de cep tem respostas diferentes que usa a palavra
 // "localidade" para definir a cidade e estado para definir a UF.
-func parseResponse(content []byte) (payload cep) {
+func parseResponse(content []byte) (payload cep, err error) {
 	response := make(map[string]interface{})
 	_ = json.Unmarshal(content, &response)
 
-	if ok := isValidResponse(response); !ok {
-		return
+	if err := isValidResponse(response); !err {
+		return payload, errors.New("invalid response")
 	}
 
 	if _, ok := response["localidade"]; ok {
