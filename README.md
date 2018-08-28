@@ -9,12 +9,20 @@ diversas requisições simultaneas em diversos serviços de `CEP` sendo capaz de
 
 ### Por que?
 Existem diversos serviços de consulta de `CEP` espalhados e cada um possui um corpo de resposta diferente,
-Fastcep consegue consultar estes serviços e retornar uma resposta uniforme independente de qual foi a fonte de consulta, assim você não precisa
-se preocupar com qual foi o serviço que respondeu e sim com os dados em sí.
+Fastcep consegue consultar estes serviços e retornar uma resposta uniforme independente de qual foi a fonte de consulta, assim você não precisa se preocupar com qual foi o serviço que respondeu e sim com os dados em sí, além de ter outros serviços de "backup" caso algum deles falhe, isso significa que você sempre terá uma resposta válida o que torna suas consultas "a prova de falhas"
+
+### Executando
+
+1. Faça o download do [código fonte](https://github.com/rafa-acioly/fastcep/archive/master.zip)
+2. Extraia os arquivos
+3. Compile o binário executando o comando em seu terminal `go build`
+4. Rode o projeto com `./fastcep`
+
+> Fastcep tentará utilizar a porta definida na variável de ambiente `PORT`, caso não encontre a porta `3000` será utilizada.
 
 ### Exemplo
 
-Abaixo existe um comparativo de uma requisição única feita em diversos serviços, note o tempo de resposta de cada um.
+Abaixo um comparativo de uma requisição única feita em diversos serviços, note o tempo de resposta de cada um.
 
 ```sh
 # viacep - tempo de resposta: 754ms
@@ -27,17 +35,18 @@ curl http://api.postmon.com.br/v1/cep/07400885
 curl http://republicavirtual.com.br/web_cep.php?cep=07400885&formato=json
 ```
 
+
+```sh
+# fastcep - utilizando como exemplo as requisições acima
+# a resposta seria de 66ms + 5ms(tempo médio de processamento)
+curl http://localhost:3000/v1/07400885
+```
+
 Fastcep é capaz de realizar as requisições simultaneas em todos os serviços e devolver
 a resposta mais rapida, desta maneira você não precisa ficar refem de apenas um serviço e consequentemente economizara tempo nas suas requisições,
 se algum dos serviços ficar indisponivel ele sera automaticamente descartado até que normalize e outros serviços continuaram respondendo normalmente assim você não corre
 o risco de ficar sem os dados de `CEP` em nenhum momento. :tada:
 
-#### Requisição com Fastcep: (link provisório)
-
-```sh
-# fastcep - tempo de resposta: em média 5ms a mais do menor tempo
-curl https://fastcep-kzvqeaxdzi.now.sh/v1/07400885
-```
 
 #### Quer adicionar outro serviço para consulta?
 - substitua o valor cep por `%s` no endpoint
