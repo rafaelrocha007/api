@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
@@ -110,7 +109,6 @@ func request(ctx context.Context, endpoint, source string, tube chan []byte) {
 		duration := time.Since(start)
 		fmt.Printf("Endpoint %s took: %s \n", source, duration)
 		tube <- requestContent
-		go saveLog(source, float64(duration/time.Millisecond))
 	}
 }
 
@@ -164,12 +162,4 @@ func isValidResponse(requestContent map[string]interface{}) bool {
 	}
 
 	return true
-}
-
-func saveLog(source string, duration float64) {
-	payload := []byte(fmt.Sprintf(`{"source": "%s", "time": %f}`, source, duration))
-	_, err := http.Post("http://logs-01.loggly.com/inputs/2402be2e-5bed-4bcf-9ab1-ac6b69ba9ccb/tag/http/", "application/json", bytes.NewBuffer(payload))
-	if err != nil {
-		fmt.Println(err.Error())
-	}
 }
