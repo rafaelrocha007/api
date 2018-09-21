@@ -7,10 +7,10 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	"os"
 	"regexp"
-	"strings"
 	"time"
+
+	"google.golang.org/appengine"
 )
 
 type cep struct {
@@ -31,15 +31,8 @@ var endpoints = map[string]string{
 }
 
 func main() {
-	http.HandleFunc("/v1/", handler)
-
-	port := os.Getenv("PORT")
-	if len(port) == 0 {
-		port = "3000"
-	}
-
-	fmt.Println("Listening on port: " + port)
-	http.ListenAndServe(":"+port, nil)
+	http.HandleFunc("/", handler)
+	appengine.Main()
 }
 
 func handler(w http.ResponseWriter, r *http.Request) {
@@ -48,7 +41,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	requestedCep := strings.Split(r.URL.Path[1:], "/")[1]
+	requestedCep := r.URL.Path[1:]
 	if err := isValidCEP(requestedCep); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
