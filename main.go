@@ -11,6 +11,8 @@ import (
 	"time"
 
 	"google.golang.org/appengine"
+	"google.golang.org/appengine/log"
+	"google.golang.org/appengine/urlfetch"
 )
 
 type cep struct {
@@ -25,9 +27,9 @@ func (c cep) exist() bool {
 }
 
 var endpoints = map[string]string{
-	"viacep":           "http://viacep.com.br/ws/%s/json/",
-	"postmon":          "http://api.postmon.com.br/v1/cep/%s",
-	"republicavirtual": "http://republicavirtual.com.br/web_cep.php?cep=%s&formato=json",
+	"viacep":           "https://viacep.com.br/ws/%s/json/",
+	"postmon":          "https://api.postmon.com.br/v1/cep/%s",
+	"republicavirtual": "https://republicavirtual.com.br/web_cep.php?cep=%s&formato=json",
 }
 
 func main() {
@@ -47,14 +49,11 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	timeout := time.Second * 300
-	ctx, cancel := context.WithTimeout(context.Background(), timeout)
-	defer cancel()
-
 	tube := make(chan []byte, 1)
+	c := appengine.NewContext(r)
 	for source, url := range endpoints {
 		endpoint := fmt.Sprintf(url, requestedCep)
-		go request(ctx, endpoint, source, tube)
+		go request(endpoint, source, tube, c)
 	}
 
 	w.Header().Set("Content-Type", "application/json")
@@ -74,33 +73,27 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	http.Error(w, "", http.StatusNoContent)
 }
 
-func request(ctx context.Context, endpoint, source string, tube chan []byte) {
+func request(endpoint, source string, tube chan []byte, ctx context.Context) {
 	start := time.Now()
 
-	request, err := http.NewRequest("GET", endpoint, nil)
+	client := urlfetch.Client(ctx)
+	client.Timeout = time.Millisecond * 300
+	response, err := client.Get(endpoint)
 	if err != nil {
-		fmt.Printf("Could not get from %s - %s \n", source, err.Error())
-		return
-	}
-
-	request = request.WithContext(ctx)
-
-	response, err := http.DefaultClient.Do(request)
-	if err != nil {
-		fmt.Printf("Fail to request data from %s \n", source)
+		log.Warningf(ctx, fmt.Sprintf("Fail to request data from %s - err %s \n", source, err.Error()))
 		return
 	}
 	defer response.Body.Close()
 
 	requestContent, err := ioutil.ReadAll(response.Body)
 	if err != nil {
-		fmt.Printf("Could not get payload from %s - %s \n", source, err.Error())
+		log.Infof(ctx, fmt.Sprintf("Could not get payload from %s - %s \n", source, err.Error()))
 		return
 	}
 
 	if len(requestContent) != 0 && response.StatusCode == http.StatusOK {
 		duration := time.Since(start)
-		fmt.Printf("Endpoint %s took: %s \n", source, duration)
+		log.Debugf(ctx, fmt.Sprintf("Endpoint %s took: %s - %v \n", source, duration, string(requestContent)))
 		tube <- requestContent
 	}
 }
