@@ -51,3 +51,6 @@ o risco de ficar sem os dados de `CEP` em nenhum momento. :tada:
 #### Quer adicionar outro serviço para consulta?
 - substitua o valor cep por `%s` no endpoint
 - Adicione o nome e endpoint na [lista de endpoint](https://github.com/rafa-acioly/fastcep/blob/master/main.go#L21)
+
+
+![](https://preview.ibb.co/fnkAxU/gopher.png)
