@@ -39,7 +39,7 @@ curl http://republicavirtual.com.br/web_cep.php?cep=07400885&formato=json
 ```sh
 # fastcep - utilizando como exemplo as requisições acima
 # a resposta seria de 66ms + 5ms(tempo médio de processamento)
-curl http://fastcep.appspot.com/07400885
+curl http://fastcep.appspot.com/v1/07400885
 ```
 
 Fastcep é capaz de realizar as requisições simultaneas em todos os serviços e devolver
